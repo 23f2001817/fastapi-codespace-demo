@@ -25,6 +25,10 @@ app.add_middleware(
     allow_headers=["*"],   # allow all headers
 )
 
+@app.get("/")
+async def root():
+    return {"message": "API is running. Use /api to fetch students."}
+
 @app.get("/api")
 async def get_students(class_: Optional[List[str]] = Query(None, alias="class")):
     """
@@ -36,9 +40,10 @@ async def get_students(class_: Optional[List[str]] = Query(None, alias="class"))
     else:
         filtered = df
 
+    # Use attribute access for namedtuple (row.class_, not row["class"])
     students = [
-        {"studentId": int(row.studentId), "class": row["class"]}
-        for row in filtered.itertuples(index=False)
+        {"studentId": int(row.studentId), "class": row.class_}
+        for row in filtered.rename(columns={"class": "class_"}).itertuples(index=False)
     ]
     return {"students": students}
 
